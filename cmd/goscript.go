@@ -142,61 +142,61 @@ func main() {
 		return
 	}
 
-	sourceFile := args[1] // Relative path
-	sourceDir, baseSourceFile := path.Split(sourceFile)
+	scriptPath := args[1] // Relative path
+	scriptDir, scriptFile := path.Split(scriptPath)
 	// The executable is an hidden file.
-	baseExecFile := "." + baseSourceFile
-	execFile := path.Join(sourceDir, baseExecFile)
+	binaryFile := "." + scriptFile
+	binaryPath := path.Join(scriptDir, binaryFile)
 
 	// === Run the executable, if exist and it has not been modified
-	if _, err := os.Stat(execFile); err == nil {
-		sourceMtime := getTime(sourceFile)
-		execMtime := getTime(execFile)
+	if _, err := os.Stat(binaryPath); err == nil {
+		scriptMtime := getTime(scriptPath)
+		binaryMtime := getTime(binaryPath)
 
-		if sourceMtime == execMtime {
+		if scriptMtime == binaryMtime {
 			goto _run
 		}
 	}
 
 	// === Check script extension
-	if path.Ext(sourceFile) != ".g" {
+	if path.Ext(scriptPath) != ".g" {
 		fmt.Fprintf(os.Stderr, "Wrong extension! It has to be \".g\"\n")
 		os.Exit(EXIT_CODE)
 	}
 
 	// === Compile and link
-	sourceMtime := getTime(sourceFile)
-	comment(sourceFile, true)
+	scriptMtime := getTime(scriptPath)
+	comment(scriptPath, true)
 	compiler, linker, archExt := toolchain()
 
 	ENVIRON = os.Environ()
 	objectFile := "_go_." + archExt
 
-	cmdArgs := []string{path.Base(compiler), "-o", objectFile, baseSourceFile}
-	exitCode := run(compiler, cmdArgs, sourceDir)
-	comment(sourceFile, false)
+	cmdArgs := []string{path.Base(compiler), "-o", objectFile, scriptFile}
+	exitCode := run(compiler, cmdArgs, scriptDir)
+	comment(scriptPath, false)
 	if exitCode != 0 {
 		os.Exit(exitCode)
 	}
 
-	cmdArgs = []string{path.Base(linker), "-o", baseExecFile, objectFile}
-	if exitCode = run(linker, cmdArgs, sourceDir); exitCode != 0 {
+	cmdArgs = []string{path.Base(linker), "-o", binaryFile, objectFile}
+	if exitCode = run(linker, cmdArgs, scriptDir); exitCode != 0 {
 		os.Exit(exitCode)
 	}
 
 	// === Cleaning
 	// Set mtime of executable just like the source file
-	setTime(sourceFile, sourceMtime)
-	setTime(execFile, sourceMtime)
+	setTime(scriptPath, scriptMtime)
+	setTime(binaryPath, scriptMtime)
 
-	if err := os.Remove(path.Join(sourceDir, objectFile)); err != nil {
+	if err := os.Remove(path.Join(scriptDir, objectFile)); err != nil {
 		fmt.Fprintf(os.Stderr, "Could not remove: %s\n", err)
 		os.Exit(EXIT_CODE)
 	}
 	// ===
 
 _run:
-	exitCode = run(execFile, []string{baseExecFile}, "")
+	exitCode = run(binaryPath, []string{binaryFile}, "")
 	os.Exit(exitCode)
 }
 
