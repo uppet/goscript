@@ -18,7 +18,7 @@ import (
 	"strings"
 )
 
-const EXIT_CODE = 2
+const EXIT_CODE = 1
 
 var ENVIRON []string
 
@@ -145,7 +145,7 @@ func main() {
 	sourceFile := args[1] // Relative path
 	sourceDir, baseSourceFile := path.Split(sourceFile)
 	// The executable is an hidden file.
-	baseExecFile := "." + baseSourceFile[:len(baseSourceFile)-2] + ".gosc"
+	baseExecFile := "." + baseSourceFile
 	execFile := path.Join(sourceDir, baseExecFile)
 
 	// === Run the executable, if exist and it has not been modified
