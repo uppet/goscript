@@ -31,7 +31,7 @@ var ENVIRON []string
 
 var fShared = flag.Bool("shared", false,
 	"whether the script is used on a mixed network of machines or   "+
-	+"systems from a shared filesystem")
+		"systems from a shared filesystem")
 
 func usage() {
 	flag.PrintDefaults()
@@ -41,6 +41,8 @@ func usage() {
 
 
 func main() {
+	var binaryDir, binaryPath string
+
 	flag.Usage = usage
 	flag.Parse()
 
@@ -52,17 +54,24 @@ func main() {
 
 	scriptPath := flag.Args()[0] // Relative path
 	scriptDir, scriptName := path.Split(scriptPath)
-	binaryPath := ""
 
 	if !*fShared {
-		binaryPath = path.Join(scriptDir, ".go", scriptName)
+		binaryDir = path.Join(scriptDir, ".go")
 	} else {
-		subDir := runtime.GOOS + "_" + runtime.GOARCH
-		binaryPath = path.Join(scriptDir, ".go", subDir, scriptName)
+		binaryDir = path.Join(scriptDir, ".go", runtime.GOOS+"_"+runtime.GOARCH)
+	}
+	binaryPath = path.Join(binaryDir, scriptName)
+
+	// Check directory
+	if ok := Exist(binaryDir); !ok {
+		if err := os.MkdirAll(binaryDir, 0750); err != nil {
+			fmt.Fprintf(os.Stderr, "Could not make directory: %s\n", err)
+			os.Exit(ERROR)
+		}
 	}
 
-	// === Run the executable, if exist and it has not been modified
-	if _, err := os.Stat(binaryPath); err == nil {
+	// Run the executable, if exist and it has not been modified
+	if ok := Exist(binaryPath); ok {
 		scriptMtime := getTime(scriptPath)
 		binaryMtime := getTime(binaryPath)
 
@@ -71,8 +80,8 @@ func main() {
 		}
 	}
 
-	// === Check script extension
-	if path.Ext(scriptPath) != ".g" {
+	// Check script extension
+	if path.Ext(scriptName) != ".g" {
 		fmt.Fprintf(os.Stderr, "Wrong extension! It has to be \".g\"\n")
 		os.Exit(ERROR)
 	}
@@ -83,33 +92,32 @@ func main() {
 	compiler, linker, archExt := toolchain()
 
 	ENVIRON = os.Environ()
-	objectFile := "_go_." + archExt
+	objectPath := path.Join(binaryDir, "_go_."+archExt)
 
-	cmdArgs := []string{path.Base(compiler), "-o", objectFile, scriptName}
-	exitCode := run(compiler, cmdArgs, scriptDir)
+	cmdArgs := []string{path.Base(compiler), "-o", objectPath, scriptPath}
+	exitCode := run(compiler, cmdArgs, "")
 	comment(scriptPath, false)
 	if exitCode != 0 {
 		os.Exit(exitCode)
 	}
 
-	cmdArgs = []string{path.Base(linker), "-o", scriptName, objectFile}
-	if exitCode = run(linker, cmdArgs, scriptDir); exitCode != 0 {
+	cmdArgs = []string{path.Base(linker), "-o", binaryPath, objectPath}
+	if exitCode = run(linker, cmdArgs, ""); exitCode != 0 {
 		os.Exit(exitCode)
 	}
 
-	// === Cleaning
 	// Set mtime of executable just like the source file
 	setTime(scriptPath, scriptMtime)
 	setTime(binaryPath, scriptMtime)
 
-	if err := os.Remove(path.Join(scriptDir, objectFile)); err != nil {
+	// Cleaning
+	/*if err := os.Remove(objectPath); err != nil {
 		fmt.Fprintf(os.Stderr, "Could not remove: %s\n", err)
 		os.Exit(ERROR)
-	}
-	// ===
+	}*/
 
 _run:
-	exitCode = run(binaryPath, []string{scriptName}, "")
+	exitCode = run(binaryPath, []string{scriptPath}, "")
 	os.Exit(exitCode)
 }
 
@@ -124,7 +132,7 @@ func _time(filename string, mtime int64) int64 {
 		fmt.Fprintf(os.Stderr, "Could not access: %s\n", err)
 		os.Exit(ERROR)
 	}
-	
+
 	if mtime != 0 {
 		info.Mtime_ns = mtime
 		return 0
@@ -163,6 +171,14 @@ func comment(filename string, ok bool) {
 _error:
 	fmt.Fprintf(os.Stderr, "Could not write: %s\n", err)
 	os.Exit(ERROR)
+}
+
+// Checks if exist a file.
+func Exist(name string) bool {
+	if _, err := os.Stat(name); err == nil {
+		return true
+	}
+	return false
 }
 
 // Executes a command and returns its exit code.
