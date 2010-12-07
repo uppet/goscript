@@ -60,7 +60,7 @@ func main() {
 	} else {
 		binaryDir = path.Join(scriptDir, ".go", runtime.GOOS+"_"+runtime.GOARCH)
 	}
-	binaryPath = path.Join(binaryDir, scriptName)
+	binaryPath = path.Join(binaryDir, scriptName[:len(scriptName)-2])
 
 	// Check directory
 	if ok := Exist(binaryDir); !ok {
