@@ -26,6 +26,10 @@ Since the command *env* doesn't allow to pass any option to the interpreter,
 then the solution has been to create a link in */usr/bin/goscript*. That link
 is created when installing with *Install.sh*.
 
+### Syntax files
+
+In directory *misc*, there is a syntax file for editor ***gedit***.
+
 
 ## Operating instructions
 
