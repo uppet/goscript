@@ -46,11 +46,11 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
-	if flag.NArg() != 1 {
+	if flag.NArg() == 0 {
 		fmt.Fprintf(os.Stderr, `
  Usage: Insert "#!/usr/bin/goscript" in the head of the Go script
 
- Flags:
+ Options:
 `)
 		usage()
 	}

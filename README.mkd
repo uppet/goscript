@@ -54,9 +54,10 @@ An example of Go script:
 ### Use in shared filesystem
 
 A special case is when there is any Go script into a shared filesystem with
-access from a heterogeneous network. Then, there is to use:
+access from a heterogeneous network. Then, there is to call the Go script from
+your system so it can takes values about the system where is going to run:
 
-	#!/usr/bin/goscript -shared
+	$ /usr/bin/goscript -shared /path/to/shared/fs/file.g
 
 
 ## Copyright and licensing
