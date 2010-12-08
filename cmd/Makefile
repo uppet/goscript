@@ -19,7 +19,9 @@ include $(GOROOT)/src/Make.cmd
 install:
 ifndef GOBIN
 	mv $(TARG) $(GOROOT)/bin/$(TARG)
+	[ -L /usr/bin/goscript ] || sudo ln -s $(GOROOT)/bin/$(TARG) /usr/bin/goscript
 else
 	mv $(TARG) $(GOBIN)/$(TARG)
+	[ -L /usr/bin/goscript ] || sudo ln -s $(GOBIN)/$(TARG) /usr/bin/goscript
 endif
 

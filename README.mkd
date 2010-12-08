@@ -2,11 +2,11 @@ goscript
 ========
 
 **goscript** allows to use Go like if were a script language. The extension of
-Go scripts has to be ".g".
+Go scripts has to be ***.g***.
 
-Internally, it compiles the script file saving it into sub-directory ".go", then
-it is run. If that binary does not exist or its modified time is different than
-script's, then it's compiled again.
+Internally, it compiles and links the script file whose executable is saved in
+the subdirectory ***.go***, then it is run. If that executable does not exist or
+its modified time is different than script's, then it's compiled again.
 
 The use of Go scripts is especially useful:
 
@@ -22,12 +22,16 @@ The use of Go scripts is especially useful:
 	$ git clone git://github.com/kless/goscript.git
 	$ cd goscript && ./Install.sh && cd -
 
+Since the command *env* doesn't allow to pass any option to the interpreter,
+then the solution has been to create a link in */usr/bin/goscript*. That link
+is created when installing with *Install.sh*.
+
 
 ## Operating instructions
 
 Insert at the head of a Go Script:
 
-	#!/usr/bin/env goscript
+	#!/usr/bin/goscript
 
 And set its executable bit:
 
@@ -35,7 +39,7 @@ And set its executable bit:
 
 An example of Go script:
 
-	#!/usr/bin/env goscript
+	#!/usr/bin/goscript
 
 	package main
 
@@ -46,6 +50,13 @@ An example of Go script:
 	func main() {
 		fmt.Println("Take it on the other side")
 	}
+
+### Use in shared filesystem
+
+A special case is when there is any Go script into a shared filesystem with
+access from a heterogeneous network. Then, there is to use:
+
+	#!/usr/bin/goscript -shared
 
 
 ## Copyright and licensing

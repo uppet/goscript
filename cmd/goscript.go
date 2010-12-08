@@ -31,7 +31,7 @@ var ENVIRON []string
 
 var fShared = flag.Bool("shared", false,
 	"whether the script is used on a mixed network of machines or   "+
-		"systems from a shared filesystem")
+	"systems from a shared filesystem")
 
 func usage() {
 	flag.PrintDefaults()
@@ -47,8 +47,11 @@ func main() {
 	flag.Parse()
 
 	if flag.NArg() != 1 {
-		fmt.Fprintf(os.Stderr,
-			" Usage: Insert \"#!/usr/bin/env goscript\" in the head of a Go script\n")
+		fmt.Fprintf(os.Stderr, `
+ Usage: Insert "#!/usr/bin/goscript" in the head of the Go script
+
+ Flags:
+`)
 		usage()
 	}
 
