@@ -2,7 +2,7 @@ goscript
 ========
 
 **goscript** allows to use Go like if were a script language. The extension of
-Go scripts has to be ***.g***.
+Go scripts has to be ***.gos***.
 
 Internally, it compiles and links the script file whose executable is saved in
 the subdirectory ***.go***, then it is run. If that executable does not exist or
@@ -35,7 +35,7 @@ Insert in the head of the Go Script:
 
 And set its executable bit:
 
-	$ chmod +x file.g
+	$ chmod +x file.gos
 
 An example of Go script:
 
@@ -57,7 +57,7 @@ A special case is when there is any Go script into a shared filesystem with
 access from a heterogeneous network. Then, there is to call the Go script from
 your system so it can takes values about the system where is going to run:
 
-	$ /usr/bin/goscript -shared /path/to/shared-fs/file.g
+	$ /usr/bin/goscript -shared /path/to/shared-fs/file.gos
 
 
 ## Copyright and licensing
