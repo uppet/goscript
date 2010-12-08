@@ -29,7 +29,7 @@ is created when installing with *Install.sh*.
 
 ## Operating instructions
 
-Insert at the head of a Go Script:
+Insert in the head of the Go Script:
 
 	#!/usr/bin/goscript
 
@@ -57,7 +57,7 @@ A special case is when there is any Go script into a shared filesystem with
 access from a heterogeneous network. Then, there is to call the Go script from
 your system so it can takes values about the system where is going to run:
 
-	$ /usr/bin/goscript -shared /path/to/shared/fs/file.g
+	$ /usr/bin/goscript -shared /path/to/shared-fs/file.g
 
 
 ## Copyright and licensing

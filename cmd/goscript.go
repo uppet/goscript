@@ -47,10 +47,12 @@ func main() {
 	flag.Parse()
 
 	if flag.NArg() == 0 {
-		fmt.Fprintf(os.Stderr, `
- Usage: Insert "#!/usr/bin/goscript" in the head of the Go script
+		fmt.Fprintf(os.Stderr, `Tool to run Go scripts
 
- Options:
+Usage: insert "#!/usr/bin/goscript" in the head of the Go script
++ In shared filesystem: /usr/bin/goscript -shared /path/to/shared-fs/file.g
+
+Flags:
 `)
 		usage()
 	}
