@@ -1,12 +1,16 @@
 goscript
 ========
 
-**goscript** allows to use Go like if were a script language. The extension of
-Go scripts has to be ***.gos***.
+**goscript** allows to use Go like if were a script language.
 
 Internally, it compiles and links the script file whose executable is saved in
-the subdirectory ***.go***, then it is run. If that executable does not exist or
+the subdirectory "*.go*", then it is run. If that executable does not exist or
 its modified time is different than script's, then it's compiled again.
+
+There is not obligation to use an extension, but if it's used then you could use
+"*.go*" if you want syntax highlighting in your editor. Another extension to use
+could be "*.gos*" (Go Script); see directory *misc* for "*.gos*" syntax in
+editor *gedit*.
 
 The use of Go scripts is especially useful:
 
@@ -26,10 +30,6 @@ Since the command *env* doesn't allow to pass any option to the interpreter,
 then the solution has been to create a link in */usr/bin/goscript*. That link
 is created when installing with *Install.sh*.
 
-### Syntax files
-
-In directory *misc*, there is a syntax file for editor ***gedit***.
-
 
 ## Operating instructions
 
@@ -39,7 +39,7 @@ Insert in the head of the Go Script:
 
 And set its executable bit:
 
-	$ chmod +x file.gos
+	$ chmod +x file.go
 
 An example of Go script:
 
@@ -61,7 +61,7 @@ A special case is when there is any Go script into a shared filesystem with
 access from a heterogeneous network. Then, there is to call the Go script from
 your system so it can takes values about the system where is going to run:
 
-	$ /usr/bin/goscript -shared /path/to/shared-fs/file.gos
+	$ /usr/bin/goscript -shared /path/to/shared-fs/file.go
 
 
 ## Copyright and licensing

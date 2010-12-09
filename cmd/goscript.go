@@ -53,7 +53,7 @@ func main() {
 Insert "#!/usr/bin/goscript" in the head of the Go script
 
 === In shared filesystem
-  $ /usr/bin/goscript -shared /path/to/shared-fs/file.gos
+  $ /usr/bin/goscript -shared /path/to/shared-fs/file.go
 
 Flags:
 `)
@@ -68,7 +68,8 @@ Flags:
 	} else {
 		binaryDir = path.Join(scriptDir, ".go", runtime.GOOS+"_"+runtime.GOARCH)
 	}
-	binaryPath = path.Join(binaryDir, scriptName[:len(scriptName)-4])
+	ext := path.Ext(scriptName)
+	binaryPath = path.Join(binaryDir, strings.TrimRight(scriptName, ext))
 
 	// Check directory
 	if ok := Exist(binaryDir); !ok {
@@ -89,10 +90,10 @@ Flags:
 	}
 
 	// Check script extension
-	if path.Ext(scriptName) != ".gos" {
-		fmt.Fprintf(os.Stderr, "Wrong extension! It has to be \".gos\"\n")
+	/*if ext != ".go" && ext != ".gos" && ext != "" {
+		fmt.Fprintf(os.Stderr, "Wrong extension! It must be \".go\" or \".gos\"\n")
 		os.Exit(ERROR)
-	}
+	}*/
 
 	// === Compile and link
 	scriptMtime := getTime(scriptPath)
