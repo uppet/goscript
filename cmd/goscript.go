@@ -32,6 +32,8 @@ var ENVIRON []string
 var fShared = flag.Bool("shared", false,
 	"whether the script is used on a mixed network of machines or   "+
 	"systems from a shared filesystem")
+	
+var hasLineInterpreter = flag.Bool("li", false, "wheter the script has the first line as a #! comment. Defaults to false")
 
 func usage() {
 	flag.PrintDefaults()
@@ -97,7 +99,9 @@ Flags:
 
 	// === Compile and link
 	scriptMtime := getTime(scriptPath)
-	comment(scriptPath, true)
+	if *hasLineInterpreter {
+    	comment(scriptPath, true)
+	}
 	compiler, linker, archExt := toolchain()
 
 	ENVIRON = os.Environ()
@@ -105,7 +109,9 @@ Flags:
 
 	cmdArgs := []string{path.Base(compiler), "-o", objectPath, scriptPath}
 	exitCode := run(compiler, cmdArgs, "")
-	comment(scriptPath, false)
+	if *hasLineInterpreter {
+    	comment(scriptPath, false)
+	}
 	if exitCode != 0 {
 		os.Exit(exitCode)
 	}
@@ -116,7 +122,7 @@ Flags:
 	}
 
 	// Set mtime of executable just like the source file
-	setTime(scriptPath, scriptMtime)
+	//setTime(scriptPath, scriptMtime)
 	setTime(binaryPath, scriptMtime)
 
 	// Cleaning
