@@ -17,6 +17,9 @@ import (
 	"path"
 	"runtime"
 	"strings"
+	"io"
+	"bufio"
+	"regexp"
 )
 
 // Error exit status
@@ -32,14 +35,58 @@ var ENVIRON []string
 var fShared = flag.Bool("shared", false,
 	"whether the script is used on a mixed network of machines or   "+
 	"systems from a shared filesystem")
-	
-var hasLineInterpreter = flag.Bool("li", false, "wheter the script has the first line as a #! comment. Defaults to false")
+
 
 func usage() {
 	flag.PrintDefaults()
 	os.Exit(ERROR)
 }
 // ===
+
+func error(s string) {
+	fmt.Printf("Error: %s\n", s)
+	os.Exit(1)
+}
+
+func warn(s string) {
+	fmt.Printf("Warnning: %s\n", s)
+}
+
+func isource(dst , src string) (refFiles []string) {
+	refFiles = make([]string, 1) 
+	file1, err := os.Open(src, os.O_RDONLY, 0)
+	if err != nil {
+		error(fmt.Sprintf("Can't open %s", src))
+	}
+	defer file1.Close()
+
+	os.Remove(dst)
+	file2, err := os.Open(dst, os.O_WRONLY | os.O_CREAT, 0644)
+	if err != nil {
+		error(fmt.Sprintf("Can't open %s", flag.Args()[1]))
+	}
+	defer file2.Close()
+
+	bufFile1 := bufio.NewReader(file1)
+	bufFile2 := bufio.NewWriter(file2)
+	defer bufFile2.Flush()
+	head, _ := bufFile1.ReadString('\n')
+	if len(head) >= 2 && head[0:2] != "#!" {
+		//error("First Line: " + head)
+		bufFile2.WriteString(head + "\n")
+	} else {
+		bufFile2.WriteString("\n")
+	}
+    refline, _ := bufFile1.ReadString('\n')
+    if len(refline) >= 5 && refline[0:5] != "///<>" {
+        bufFile2.WriteString(refline + "\n")
+    } else {
+        refFiles = regexp.MustCompile("[_a-zA-Z]+\\.go").FindAllString(refline, 1000)
+        bufFile2.WriteString(refline + "\n")
+    }
+	io.Copy(bufFile2, bufFile1)
+	return
+}
 
 
 func main() {
@@ -71,7 +118,10 @@ Flags:
 		binaryDir = path.Join(scriptDir, ".go", runtime.GOOS+"_"+runtime.GOARCH)
 	}
 	ext := path.Ext(scriptName)
-	binaryPath = path.Join(binaryDir, strings.TrimRight(scriptName, ext))
+	binaryPath = path.Join(binaryDir, scriptName[0:len(scriptName) - len(ext)])
+	// warn(ext)
+	// warn(binaryDir)
+	// warn(binaryPath)
 
 	// Check directory
 	if ok := Exist(binaryDir); !ok {
@@ -86,7 +136,7 @@ Flags:
 		scriptMtime := getTime(scriptPath)
 		binaryMtime := getTime(binaryPath)
 
-		if scriptMtime == binaryMtime {
+		if scriptMtime <= binaryMtime {
 			goto _run
 		}
 	}
@@ -98,20 +148,21 @@ Flags:
 	}*/
 
 	// === Compile and link
-	scriptMtime := getTime(scriptPath)
-	if *hasLineInterpreter {
-    	comment(scriptPath, true)
-	}
+	// scriptMtime := getTime(scriptPath)
+	
+	//comment(scriptPath)
+	iscriptPath := scriptPath + ".i"
+	refFiles := isource(iscriptPath, scriptPath)
 	compiler, linker, archExt := toolchain()
 
 	ENVIRON = os.Environ()
 	objectPath := path.Join(binaryDir, "_go_."+archExt)
 
-	cmdArgs := []string{path.Base(compiler), "-o", objectPath, scriptPath}
+	cmdArgs := []string{path.Base(compiler), "-o", objectPath, iscriptPath}
+	cmdArgs = append(cmdArgs, refFiles...)
 	exitCode := run(compiler, cmdArgs, "")
-	if *hasLineInterpreter {
-    	comment(scriptPath, false)
-	}
+	//comment(scriptPath, false)
+	os.Remove(iscriptPath)
 	if exitCode != 0 {
 		os.Exit(exitCode)
 	}
@@ -122,8 +173,8 @@ Flags:
 	}
 
 	// Set mtime of executable just like the source file
-	//setTime(scriptPath, scriptMtime)
-	setTime(binaryPath, scriptMtime)
+	// setTime(scriptPath, scriptMtime)
+	// setTime(binaryPath, scriptMtime)
 
 	// Cleaning
 	/*if err := os.Remove(objectPath); err != nil {
@@ -132,7 +183,14 @@ Flags:
 	}*/
 
 _run:
-	exitCode = run(binaryPath, []string{scriptPath}, "")
+	// for a,v := range flag.Args() {
+	// 	fmt.Print(a)
+	// 	fmt.Println(v)
+	// }
+	// normArgs := make([]string, len(flag.Args()) + 1)
+	// // normArgs = append(normArgs, binaryPath)
+	// normArgs = append(normArgs, flag.Args()...)
+	exitCode = run(binaryPath, /*normArgs*/ flag.Args()[:], scriptDir)
 	os.Exit(exitCode)
 }
 
@@ -163,30 +221,6 @@ func setTime(filename string, mtime int64) {
 	_time(filename, mtime)
 }
 
-// Comments or comments out the line interpreter.
-func comment(filename string, ok bool) {
-	file, err := os.Open(filename, os.O_WRONLY, 0)
-	if err != nil {
-		goto _error
-	}
-	defer file.Close()
-
-	if ok {
-		if _, err = file.Write([]byte("//")); err != nil {
-			goto _error
-		}
-	} else {
-		if _, err = file.Write([]byte("#!")); err != nil {
-			goto _error
-		}
-	}
-
-	return
-
-_error:
-	fmt.Fprintf(os.Stderr, "Could not write: %s\n", err)
-	os.Exit(ERROR)
-}
 
 // Checks if exist a file.
 func Exist(name string) bool {
