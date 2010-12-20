@@ -53,7 +53,7 @@ func warn(s string) {
 }
 
 func isource(dst , src string) (refFiles []string) {
-	refFiles = make([]string, 1) 
+	refFiles = make([]string, 0) 
 	file1, err := os.Open(src, os.O_RDONLY, 0)
 	if err != nil {
 		error(fmt.Sprintf("Can't open %s", src))
